@@ -44,8 +44,6 @@ void PromptString(const char* promptText, char* inputBuffer, int maxLength) {
 void PromptInt(const char* promptText, int* inputValue) {
     printf("%s", promptText);
     scanf("%d", inputValue);
-    
-    // Membersihkan sisa newline di buffer stdin
     int c;
     while ((c = getchar()) != '\n' && c != EOF) {}
 }
