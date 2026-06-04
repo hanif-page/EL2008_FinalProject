@@ -7,5 +7,6 @@ void getUserChoice(int* choice);
 void promptString(const char* promptText, char* inputBuffer, int maxLength);
 void promptInt(const char* promptText, int* inputValue);
 void printHeader();
+void printTableFooter();
 
 #endif // USER_INTERFACE_H

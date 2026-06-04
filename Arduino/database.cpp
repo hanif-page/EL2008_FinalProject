@@ -261,10 +261,44 @@ void processSerialInput() {
         else if (strncmp(buffer, "DEL", 3) == 0) {
             char* token = strtok(buffer, ",");
             token = strtok(NULL, ",");
-            deleteItem(atoi(token));
+            if (token != NULL) {
+                deleteItem(atoi(token));
+            }
+        }
+        else if (strncmp(buffer, "UPDATE", 6) == 0) {
+            char* token = strtok(buffer, ",");
+            
+            token = strtok(NULL, ","); uint8_t id = atoi(token);
+            token = strtok(NULL, ","); uint8_t qTer = atoi(token);
+            token = strtok(NULL, ","); uint8_t qDip = atoi(token);
+            token = strtok(NULL, ","); uint8_t qRus = atoi(token);
+            
+            updateItem(id, qTer, qDip, qRus);
         }
         else if (strncmp(buffer, "GET_ALL", 7) == 0) {
             printInventory();
         }
     }
+}
+
+void updateItem(uint8_t targetId, uint8_t qTer, uint8_t qDip, uint8_t qRus) {
+    if (head == NULL) {
+        Serial.println("ERR: EMPTY");
+        return;
+    }
+
+    Node* current = head;
+    while (current != NULL) {
+        if (current->data.id == targetId) {
+            current->data.qtyTersedia = qTer;
+            current->data.qtyDipinjam = qDip;
+            current->data.qtyRusak = qRus;
+            
+            syncListToEEPROM();
+            Serial.println("ACK_UPDATE");
+            return;
+        }
+        current = current->next;
+    }
+    Serial.println("ERR: NOT_FOUND");
 }

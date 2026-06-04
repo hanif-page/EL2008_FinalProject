@@ -65,5 +65,6 @@ void deleteItem(uint8_t targetId);
 void syncListToEEPROM();
 void printInventory();
 void parseAndAddCommand(char* commandString);
+void updateItem(uint8_t targetId, uint8_t qTer, uint8_t qDip, uint8_t qRus);
 
 #endif
