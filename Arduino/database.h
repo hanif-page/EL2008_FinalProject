@@ -62,6 +62,7 @@ void unpackItemPIC(ItemData* item, char* outBuffer);
 // 3. Linked List & EEPROM Operations
 void insertItem(ItemData newData);
 void deleteItem(uint8_t targetId);
+void updateItem(uint8_t targetId,uint8_t qTer,uint8_t qDip,uint8_t qRus);
 void syncListToEEPROM();
 void printInventory();
 void parseAndAddCommand(char* commandString);
