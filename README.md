@@ -1,8 +1,8 @@
 # Laboratory Inventory Management System
 
-**PROBLEM SOLVING THROUGH PROGRAMMING (EL2008)**
+**PROBLEM SOLVING WITH PROGRAMMING (EL2008)**
 
-This system is a C-based *Client-Server* architecture designed to overcome the memory resource limitations of the ATmega328P microcontroller. The system distributes workload between a user interface running on a computer (PC) and a physical database stored in the Arduino's EEPROM.
+This system is a C-based *Client-Server* architecture designed to overcome the non-volatile memory resource limitations of the Arduino UNO. The system distributes workload between a user interface running on a computer (PC) and a physical database stored in the Arduino's EEPROM.
 
 ---
 
@@ -97,7 +97,7 @@ A terminal-based user interface written entirely in C. The application is respon
 
 ### Hardware
 
-* Arduino Uno (ATmega328P)
+* Arduino Uno
 * USB Data Cable
 * macOS Computer
 
@@ -200,4 +200,4 @@ to safely disconnect the serial connection before unplugging the Arduino USB cab
 
 ---
 
-This project was developed for the **EL2008 – Problem Solving Through Programming** course at the **Bandung Institute of Technology (Institut Teknologi Bandung)**.
+This project was developed for the **EL2008 – Problem Solving With Programming** course at the **Bandung Institute of Technology (Institut Teknologi Bandung)**.
