@@ -1,206 +1,203 @@
-# EL2008 Final Project
+# Laboratory Inventory Management System
 
-Please read the whole README file before working on the project.
+**PROBLEM SOLVING THROUGH PROGRAMMING (EL2008)**
 
-## Needed Extension in VSCode (We all have to download it)
+This system is a C-based *Client-Server* architecture designed to overcome the memory resource limitations of the ATmega328P microcontroller. The system distributes workload between a user interface running on a computer (PC) and a physical database stored in the Arduino's EEPROM.
 
-Add extension **PlatformIO** (To compile and upload code to the Arduino) and **Wokwi** (To simulate Arduino) in VSCode
+---
 
-[Add PlatformIO extension in VSCode](https://www.youtube.com/watch?v=xrAgUXFdrs8)
+## Development Team
 
-[Setup Wokwi in VScode](https://www.youtube.com/watch?v=ECNTyMm_5PE)
+| Name                        | Student ID |
+| :-------------------------- | :--------- |
+| Muhammad Ammar Hanif        | 13224087   |
+| Maria Vanessa Soritan       | 13224078   |
+| Hufnagel Ruben Lenard S.    | 13224015   |
+| Christian Jonathan Hutajulu | 13224108   |
 
-[PlatformIO Documentation](https://docs.platformio.org/en/latest/)
+---
 
-[Wokwi Documentation](https://docs.wokwi.com/vscode/getting-started)
+## Data Structure and Format (Compressed Memory)
 
-## Cara Pake Git
+The system utilizes *bit-field* manipulation and custom character compression techniques to store inventory records in a highly memory-efficient structure. The following constraints apply to each inventory item:
 
-### Cara Setup Git
+* **ID:** `0 - 127` (7-bit Integer)
+* **Item Name:** Maximum 8 characters. Limited to uppercase letters (A-Z), lowercase letters (a-z), and digits (0-9). Encoded using 6 bits per character.
+* **Category:** `0 - 3` (2-bit Integer). Numeric representation:
 
-Jika belum ada Git bisa [download](https://git-scm.com/) dulu ya.
+  * `0` = Microcontroller
+  * `1` = Actuator
+  * `2` = Sensor
+  * `3` = Others
+* **Available Quantity:** `0 - 63` (6-bit Integer)
+* **Borrowed Quantity:** `0 - 63` (6-bit Integer)
+* **Damaged Quantity:** `0 - 63` (6-bit Integer)
+* **Item PIC:** Maximum 3 characters. Limited to uppercase letters (A-Z) only. Encoded using 5 bits per character.
 
-Bisa tonton [tutor ini](https://www.youtube.com/watch?v=wDRoduig_98)
+> **Note:** The **Item Owner** attribute is intentionally not stored in the hardware database to maximize EEPROM storage capacity.
 
-Abis itu kalian bisa clone github reponya di lokasi yang kalian inginin dengan ketik
+---
 
-````bash
-git clone https://github.com/hanif-page/EL2008_FinalProject.git
-````
+## System Architecture
 
-Kalau ada pertanyaan, langsung chat ke grup Line aja ya.
+The project is divided into two main directories that operate independently while communicating through the Serial (UART) protocol.
 
-### Cara Pull dan bikin branch baru di git
+### 1. `avr_mcu` (Database Server)
 
-Nahh kalian saat udah masuk kedalam git bisa bikin branch masing masing nih.
+Contains the Arduino firmware written entirely in C (*Bare-Metal Programming*). The firmware is responsible for:
 
-Pertama, kalian bikin branch dengan ketik 
+* Low-level register-based I/O operations
+* EEPROM data storage management
+* SRAM-based linked list structures
+* UART serial communication
+* Processing commands received from the client
 
-````bash
-git branch <nama branch kalian (Nama kalian juga boleh)>
-````
+### 2. `client_interface_macos` / `client_interface_windows` (User Client)
 
-Terus kalian bisa masuk ke branch kalian dengan ketik
+A terminal-based user interface written entirely in C. The application is responsible for:
 
-````bash
-git checkout <nama branch kalian>
-````
+* User input validation (*Fail-Fast Validation*)
+* Displaying inventory data in tabular format
+* Sending commands to the Arduino via UART
+* Displaying server responses to the user
 
-nah abis itu kalian kalau mau pull dari main ke branch kalian bisa ketik
+---
 
-````bash
-git pull origin main
-````
+## Repository Structure
 
-### Cara Commit Git
+```text
+.
+├── avr_mcu/
+│   ├── src/
+│   ├── include/
+│   ├── Makefile
+│   └── ...
+│
+├── client_interface_macos/
+│   ├── src/
+│   ├── include/
+│   ├── Makefile
+│   └── ...
+│
+├── client_interface_windows/
+│   ├── src/
+│   ├── include/
+│   ├── Makefile
+│   └── ...
+|
+├── docs/
+|   ├── Spesifikasi Tugas Besar PMP.pdf
+│
+└── README.md
+```
 
-Kalau kalian mau melakukan commit setelah melakukan perubahan ada beberapa hal yang harus kalian lakukan.
+---
 
-Pertama, kalian harus memberi tahu file mana yang mau dilakukan commit. Kalian dapat ketik
+## System Requirements
 
-````bash
-git add <lokasi file>
-````
+### Hardware
 
-contoh nya:
+* Arduino Uno (ATmega328P)
+* USB Data Cable
+* macOS Computer
 
-````bash
-git add .\src\testHFile.cpp
-````
-atau alternatif lain adalah add semua perubahan yang terjadi
+### Software
 
-````bash
-git add .
-````
+* GNU Make
+* AVR-GCC Toolchain
+* AVRDUDE
+* macOS Terminal
 
-Lalu setelah di git add, kalian dapat langsung melakukan commit
+---
 
-````bash
-git commit -m "<pesan commit>"
-````
+# Compilation and Execution Guide (macOS)
 
-Untuk `<pesan commit>`, akan ada format nya sendiri yaitu
+Follow the steps below to run the complete system from the macOS terminal. Ensure that the AVR toolchain (`avr-gcc`, `avrdude`) and GNU Make are installed.
 
-`<jenis commit> : <file yang di commit> : <Penjelasan Commit>`
+---
 
-Contohnya, 
+## Step 1: Hardware Preparation
 
-````bash
-git commit -m "feat : testHFile.cpp : Pembuatan fungsi SayHello"
-````
+1. Connect the Arduino Uno to your Mac using a USB cable.
+2. Ensure that the Arduino IDE is **closed** so that the serial port is not occupied by another application.
+3. Identify your Arduino serial port by running the following command:
 
-untuk `<jenis commit>` dapat mengikuti tabel berikut,
+```bash
+ls /dev/cu.usbmodem*
+```
 
-| Tipe | Deskripsi |
-| :--- | :--- |
-| **`feat`** | Commit yang menambah, menyesuaikan, atau menghapus fitur pada API atau UI. |
-| **`fix`** | Commit yang memperbaiki bug pada API atau UI dari commit `feat` sebelumnya. |
-| **`refactor`** | Commit yang menulis ulang atau merestrukturisasi kode tanpa mengubah perilaku API atau UI. |
-| **`perf`** | Tipe khusus dari `refactor` yang bertujuan spesifik untuk meningkatkan performa. |
-| **`style`** | Commit yang berkaitan dengan gaya penulisan kode (misal: *white-space*, format, titik koma) dan tidak memengaruhi perilaku aplikasi. |
-| **`test`** | Commit yang menambah pengujian (*test*) yang kurang atau memperbaiki pengujian yang sudah ada. |
-| **`docs`** | Commit yang hanya memengaruhi dokumentasi. |
-| **`build`** | Commit yang memengaruhi komponen terkait proses *build* seperti *tools*, dependensi, versi proyek, dan lain-lain. |
-| **`ops`** | Commit yang memengaruhi aspek operasional seperti infrastruktur (IaC), skrip deployment, alur CI/CD, cadangan (*backup*), pemantauan, atau prosedur pemulihan. |
-| **`chore`** | Commit untuk tugas-tugas rutin seperti commit awal, memodifikasi `.gitignore`, dan tugas administratif lainnya. |
+Example output:
 
-Untuk penjelasan lebih lanjut dapat lihat di [repo ini](https://gist.github.com/qoomon/5dfcdf8eec66a051ecd85625518cfd13).
+```bash
+/dev/cu.usbmodem11301
+```
 
-### Cara Push ke Github
+> Copy the detected port name, as it will be used when launching the client application.
 
-Setelah kalian udah ngelakuin perubahan, kalian bisa push ke github nihhh
+---
 
-Kalian ketik aja 
+## Step 2: Upload Firmware to the Arduino (`avr_mcu`)
 
-````bash
-git push origin <nama branch kalian>
-````
+Open a terminal and navigate to the microcontroller firmware directory:
 
-pastiin ya kalian lagi di branch kalian sebelum push dengan ketik
+```bash
+cd avr_mcu
+make clean
+make upload
+```
 
-````bash
-git branch
-````
+Explanation:
 
-dan lihat apakah branch kalian adalah yang di highlight.
+* `make clean` removes previously generated build files.
+* `make upload` cross-compiles the firmware and uploads it to the Arduino using AVRDUDE.
 
-Nanti setelah itu kalian bisa lakuin pull request kalau mau merge ke main.
+Wait until the process completes and the terminal displays a message similar to:
 
-## Cara Nulis Program
+```text
+avrdude done. Thank you.
+```
 
-Nah sebenernya kalau ini mirip mirip ya sama kalau kalian mau nulis program arduino biasa. Tetapi ada beberapa hal yang harus diperhatiin lagi
+Once this message appears, the firmware has been successfully uploaded and the EEPROM database is ready to receive commands from the client.
 
-Pertama, kalian nanti ada dua jenis file yang akan kalian tulia yaitu C++ File `.cpp` dan Header File `.h`.
+---
 
-Cara menulisnya mirip seperti alpro kalau kalian inget, C++ file nya tulis di folder `src` sedangkan Header File ditulis di folder `include`
+## Step 3: Launch the Client Interface (`client_interface_macos`)
 
-Note : Jangan lupa ya gunakan `#include <Arduino.h>` untuk menggunakan standard library arduino.
+Open a new terminal tab (or return to the project root directory), then navigate to the client directory:
 
-Jika kalian mau melakukan testing, kalian dapat menggunakan file `test.cpp` untuk mencoba fungsi yang telah kalian tulis.
+```bash
+cd client_interface_macos
+make clean
+make
+```
 
-Kalian **JANGAN** mengubah file `main.cpp` untuk melakukan test perfungsi. File ini digunakan untuk melakukan test secara keseluruhan atau mengkompile program akhir.
+Explanation:
 
-Lalu juga ada convensi dalam menulis untuk mempermudah kita membaca dan mengerti program yang kita telah tulis.
+* `make clean` removes previously generated build files.
+* `make` compiles and links all program modules to generate the executable file.
 
-| Tipe Elemen | Konvensi Penamaan | Awalan / Akhiran | Contoh |
-| :--- | :--- | :--- | :--- |
-| **Variabel Lokal** | `camelCase` | Tidak ada | `itemCount`, `sensorValue` |
-| **Variabel Global** | `camelCase` | `global_` (Awalan) | `global_totalSystemUptime`, `global_dataBaseLinkedList` |
-| **Konstanta & Makro** | `SCREAMING_SNAKE_CASE` | Tidak ada | `MAX_CATALOG_ITEMS` |
-| **Fungsi Kustom** | `PascalCase` | Tidak ada | `InitSensor()`, `CalculateTotal()` |
-| **Struct** | `PascalCase` | Tidak ada | `CatalogItem`, `AccelData` |
-| **Struct Element** | `snake_case` | Tidak Ada | `id_benda`, `nama_benda` |
-| **Enum** | `PascalCase` | Tidak ada | `SystemState`, `ErrorMode` |
-| **Nilai Enum** | `SCREAMING_SNAKE_CASE` | Tidak ada | `STATE_IDLE`, `STATE_ERROR` |
-| **Pointer** | `camelCase` | `Ptr` (Akhiran) | `bufferPtr`, `dataBaseLinkedListPtr` |
+After a successful build and the `inventory` executable has been created, run the program by providing the serial port identified in Step 1:
 
-Lalu untuk penamaan file `.cpp` dan `.h` gunakan `camelCase`.
+```bash
+./inventory /dev/cu.usbmodem11301
+```
 
-## Cara Compile Program
+Replace `/dev/cu.usbmodem11301` with the serial port detected on your computer.
 
-Setelah kalian menulis program, kalian dapat mengcompile program dengan menggunakan **PlatformIo**.
+The application will perform a handshake with the Arduino and display the Main Menu once the connection is successfully established.
 
-Pertama, kalian pilih environment yang mau kalian gunakan. 
+---
 
-![Compile 1](Image/Compile_1.png)
+## Exiting the Program
 
-![Compile 2](Image/Compile_2.png)
+Use the following menu option:
 
-Lalu kalian tinggal klik compile.
+```text
+7. Exit
+```
 
-![Compile 3](Image/Compile_3.png)
+to safely disconnect the serial connection before unplugging the Arduino USB cable.
 
-Kalau kalian mau upload ke arduino kalian tinggal klik upload
+---
 
-![Compile 4](Image/Compile_4.png)
-
-## Cara Simulasi
-
-Untuk simulasi akan digunakan **Wokwi**
-
-Pertama, kalian ubah isi `wokwi.toml`.
-
-Untuk environment `uno_main`, ubah menjadi
-
-````
-[wokwi]
-version = 1
-firmware = ".pio/build/uno_main/firmware.hex"
-elf = ".pio/build/uno_main/firmware.elf"
-````
-
-Untuk environment `uno_test`, ubah menjadi
-
-````
-[wokwi]
-version = 1
-firmware = ".pio/build/uno_test/firmware.hex"
-elf = ".pio/build/uno_test/firmware.elf"
-````
-
-
-Lalu setelah itu kalian buka `diagram.json` dan pastikan pada mode Wokwi Diagram Editor
-
-Lalu kalian tinggal klik play
-
-![Simulasi 1](Image/Simulasi_1.png)
+This project was developed for the **EL2008 – Problem Solving Through Programming** course at the **Bandung Institute of Technology (Institut Teknologi Bandung)**.
