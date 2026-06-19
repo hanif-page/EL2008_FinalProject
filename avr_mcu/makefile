@@ -1,7 +1,7 @@
 # --- KONFIGURASI PERANGKAT KERAS ---
 MCU = atmega328p
 F_CPU = 16000000UL
-PORT = /dev/cu.usbmodem1301
+PORT = /dev/cu.usbmodem11301
 BAUD_UPLOAD = 115200
 
 # --- KONFIGURASI TOOLCHAIN ---

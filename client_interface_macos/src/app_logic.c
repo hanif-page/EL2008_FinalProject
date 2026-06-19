@@ -28,7 +28,8 @@ void fetchSerialUntil(const char* targetKeyword){
             // berhenti menunggu jika keyword target ATAU kata kunci error ditemukan
             if (strstr(serialBuffer, targetKeyword) != NULL || 
                 strstr(serialBuffer, "ERR") != NULL || 
-                strstr(serialBuffer, "ERROR") != NULL) {
+                strstr(serialBuffer, "ERROR") != NULL ||
+                strstr(serialBuffer, "ERR: STORAGE_FULL") != NULL) {
                 break; 
             }
         }
@@ -76,10 +77,6 @@ void runApp()
             default:
                 printf("\nPilihan tidak valid!\n");
         }
-        // if (pilihan != 7)
-        // {
-        //     printf("\nLoading...\n");
-        // }
     }
 }
 
@@ -103,10 +100,12 @@ void addInventory()
 
     char *line = strtok(serialBuffer, "\n");
     int idSudahAda = 0;
+    int itemCount = 0;
 
     while(line != NULL)
     {
         if(strcmp(line, "END") == 0) break;
+        itemCount++;
         int existingId;
         if(sscanf(line, "%d,", &existingId) == 1)
         {
@@ -123,54 +122,115 @@ void addInventory()
         printf("ERROR: ID %d sudah digunakan!\n", id);
         return;
     }
+    if (itemCount >= 85)
+    {
+        printf("\n=========================================================\n");
+        printf("[GAGAL] Kapasitas penyimpanan EEPROM penuh (Maks 85 item)!\n");
+        printf("[INFO]  Silakan hapus item lain terlebih dahulu untuk\n");
+        printf("        menambahkan data inventaris terbaru.\n");
+        printf("=========================================================\n");
+        return;
+    }
     
     promptString(
         "Nama (maks 8 karakter): ",
         nama,
         sizeof(nama)
     );
+
+    // validasi string nama
+    int lenNama = strlen(nama);
+    if (lenNama == 0 || lenNama > 8)
+    {
+        printf("ERROR: Panjang nama harus 1-8 karakter\n");
+        return;
+    }
+    for (int i = 0; i < lenNama; i++)
+    {
+        char c = nama[i];
+        if (!((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')))
+        {
+            printf("ERROR: Nama hanya boleh berisi huruf dan angka\n");
+            return;
+        }
+    }
+
+    // keterangan kategori
+    printf("\nBerikut keterangan untuk nomor kategori:\n");
+    printf("0. Mikrokontroler\n");
+    printf("1. Aktuator\n");
+    printf("2. Sensor\n");
+    printf("3. Lainnya\n");
+    
     promptInt(
         "Kategori (0-3): ",
         &kategori
     );
+    if(kategori < 0 || kategori > 3)
+    {
+        printf("ERROR: Kategori harus 0-3\n");
+        return;
+    }
+
     promptInt(
-        "Lokasi (0-63): ",
+        "\nLokasi (0-63): ",
         &lokasi
     );
+    if(lokasi < 0 || lokasi > 63)
+    {
+        printf("ERROR: Lokasi harus 0-63\n");
+        return;
+    }
+    
     promptInt(
         "Qty Tersedia (0-63): ",
         &qTer
     );
+    if(qTer < 0 || qTer > 63)
+    {
+        printf("ERROR: Qty harus 0-63\n");
+        return;
+    }
     promptInt(
         "Qty Dipinjam (0-63): ",
         &qDip
     );
+    if(qDip < 0 || qDip > 63)
+    {
+        printf("ERROR: Qty harus 0-63\n");
+        return;
+    }
     promptInt(
         "Qty Rusak (0-63): ",
         &qRus
     );
+    if(qRus < 0 || qRus > 63)
+    {
+        printf("ERROR: Qty harus 0-63\n");
+        return;
+    }
+    
     promptString(
         "PIC (3 huruf): ",
         pic,
         sizeof(pic)
     );
 
-    if(kategori < 0 || kategori > 3)
+    // validasi string PIC
+    int lenPic = strlen(pic);
+    if (lenPic != 3)
     {
-        printf("ERROR: Kategori harus 0-3\n");
+        printf("ERROR: PIC harus tepat terdiri dari 3 karakter\n");
         return;
     }
-    if(lokasi < 0 || lokasi > 63)
+    for (int i = 0; i < lenPic; i++)
     {
-        printf("ERROR: Lokasi harus 0-63\n");
-        return;
-    }
-    if(qTer < 0 || qTer > 63 ||
-       qDip < 0 || qDip > 63 ||
-       qRus < 0 || qRus > 63)
-    {
-        printf("ERROR: Qty harus 0-63\n");
-        return;
+        char c = pic[i];
+        if (!(c >= 'A' && c <= 'Z'))
+        {
+            printf("ERROR: PIC hanya boleh berisi huruf besar\n");
+            return;
+        }
     }
 
     snprintf(
@@ -183,9 +243,7 @@ void addInventory()
 
     sendSerialData(command);
     fetchSerialUntil("ACK_ADD"); // tunggu hingga EEPROM selesai ditulis
-    // printf("\n[Arduino] %s\n", serialBuffer);
 }
-
 
 void deleteInventory()
 {
@@ -248,15 +306,24 @@ void searchByID()
 
         if(parsed == 8 && id == targetID)
         {
+            const char* namaKategori[] = {"Mikrokontroler", "Aktuator", "Sensor", "Lainnya"};
+            const char* strKategori = "X";
+
+            if (kategori >= 0 && kategori <= 3) 
+            {
+                strKategori = namaKategori[kategori];
+            }
+            
             printf("\n===== DATA DITEMUKAN =====\n");
             printf("ID          : %d\n", id);
             printf("Nama        : %s\n", nama);
-            printf("Kategori    : %d\n", kategori);
+            printf("Kategori    : %s\n", strKategori);
             printf("Lokasi      : %d\n", lokasi);
             printf("Tersedia    : %d\n", qTer);
             printf("Dipinjam    : %d\n", qDip);
             printf("Rusak       : %d\n", qRus);
             printf("PIC         : %s\n", pic);
+            printf("Pemilik     : Laboratorium Embedded Systems\n");
 
             return;
         }
@@ -277,6 +344,35 @@ void updateStockAndStatus()
         "ID Barang: ",
         &id
     );
+
+    sendSerialData("GET_ALL\n");
+    fetchSerialUntil("END");
+
+    // pengecekan id
+    char *line = strtok(serialBuffer, "\n");
+    int idDitemukan = 0;
+
+    while(line != NULL)
+    {
+        if(strcmp(line, "END") == 0) break;
+        int existingId;
+        if(sscanf(line, "%d,", &existingId) == 1)
+        {
+            if(existingId == id)
+            {
+                idDitemukan = 1;
+                break;
+            }
+        }
+        line = strtok(NULL, "\n");
+    }
+
+    if(!idDitemukan)
+    {
+        printf("ERROR: ID %d tidak ditemukan!\n", id);
+        return;
+    }
+
     promptInt(
         "Qty Tersedia Baru: ",
         &qTer
@@ -299,7 +395,7 @@ void updateStockAndStatus()
 
     sendSerialData(command);
     fetchSerialUntil("ACK_UPDATE");
-    // printf("\n[Arduino] %s\n", serialBuffer);
+    printf("\nStock dan status berhasil diperbarui!\n");
 }
 
 void displayAllInventory()
@@ -328,9 +424,19 @@ void displayAllInventory()
 
         if(parsed == 8)
         {
+            // mengubah angka kategori jadi nama kategorinya
+            const char* namaKategori[] = {"Mikrokontroler", "Aktuator", "Sensor", "Lainnya"};
+            const char* strKategori = "X";
+
+            if (kategori >= 0 && kategori <= 3) 
+            {
+                strKategori = namaKategori[kategori];
+            }
+
             printf(
-                "  | %-3d | %-8.8s |    %1d     |   %2d   |    %2d    |    %2d    |   %2d  | %-3.3s |\n",
-                id,nama,kategori,lokasi,qTer,qDip,qRus,pic
+                // format tabel diubah
+                "  | %-3d | %-8.8s | %-15s |   %2d   |    %2d    |    %2d    |   %2d  | %-3.3s |\n",
+                id,nama,strKategori,lokasi,qTer,qDip,qRus,pic
             );
         }
 

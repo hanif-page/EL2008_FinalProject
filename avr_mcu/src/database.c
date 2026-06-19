@@ -32,15 +32,17 @@ void printString(const char* str) {
     }
 }
 
+// berubah!
 // Pengganti Serial.available()
-uint8_t dataAvailableUART(void) {
-    return (UCSR0A & (1 << RXC0));
+void dataAvailableUART(uint8_t* available) {
+    *available = (UCSR0A & (1 << RXC0));
 }
 
+// berubah!
 // Pengganti Serial.read()
-char receiveUART(void) {
+void receiveUART(char* receivedData) {
     while (!(UCSR0A & (1 << RXC0)));
-    return UDR0;
+    *receivedData = UDR0;
 }
 
 // Fungsi konversi integer ke string manual (pengganti Serial.print(int))
@@ -162,22 +164,42 @@ void initDatabase(void) {
 }
 
 void syncListToEEPROM(void) {
-    // Timpa seluruh EEPROM dengan nilai 255 (Empty State)
-    for (int i = 0; i < 1024; i++) {
-        eeprom_write_byte((uint8_t*)i, 255); 
-    }
-
     Node* current = head;
     int index = 0;
+    
+    // Perbarui data yang ada di Linked List
     while (current != NULL && index < MAX_ITEMS) {
-        // Pengganti EEPROM.put
-        eeprom_write_block(&(current->data), (void*)(index * ITEM_SIZE), ITEM_SIZE);
+        // eeprom_update_block speed > eeprom_write_block speed
+        // reason: karena hanya menulis byte yang benar-benar mengalami perubahan
+        eeprom_update_block(&(current->data), (void*)(index * ITEM_SIZE), ITEM_SIZE);
         current = current->next;
+        index++;
+    }
+    
+    // Kasih tanda batas akhir (Terminator) ke sisa slot yang kosong
+    // Tidak perlu menghapus 1.024 byte. Cukup rusak byte pertama dari sisa slot menjadi 255 (sehingga membuat ID = 127 / Kosong).
+    while (index < MAX_ITEMS) {
+        eeprom_update_byte((uint8_t*)(index * ITEM_SIZE), 255);
         index++;
     }
 }
 
 void insertItem(ItemData newData) {
+    // check maximum capacity
+    int currentCount = 0;
+    Node* temp = head;
+    while (temp != NULL) {
+        currentCount++;
+        temp = temp->next;
+    }
+
+    if (currentCount >= MAX_ITEMS) {
+        // reject request and send error message to the client
+        printString("ERR: STORAGE_FULL\n");
+        return; 
+    }
+
+    // if there's still room in the actual capacity (< 85), then continue
     Node* newNode = (Node*)malloc(sizeof(Node));
     if (newNode == NULL) {
         printString("ERR: SRAM_FULL\n");
@@ -298,13 +320,18 @@ void parseAndAddCommand(char* commandString) {
     insertItem(newItem);
 }
 
+// berubah!
 // Pengganti readBytesUntil manual
 void processSerialInput(void) {
     static char buffer[64];
     static uint8_t index = 0;
 
-    if (dataAvailableUART()) {
-        char c = receiveUART();
+    uint8_t available = 0;
+    dataAvailableUART(&available);
+
+    if (available) {
+        char c;
+        receiveUART(&c);
         
         if (c == '\n') {
             buffer[index] = '\0'; // Tutup string
