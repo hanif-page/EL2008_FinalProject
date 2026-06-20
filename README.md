@@ -87,6 +87,8 @@ A terminal-based user interface written entirely in C. The application is respon
 |
 ├── docs/
 |   ├── Spesifikasi Tugas Besar PMP.pdf
+|   ├── EL2008_LaporanTugasBesar_K03-6.pdf
+|   ├── EL2008_SlideTugasBesar_K03-6.pdf
 │
 └── README.md
 ```
