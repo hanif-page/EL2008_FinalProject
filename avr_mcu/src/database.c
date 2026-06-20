@@ -7,9 +7,7 @@
 Node* head = NULL;
 Node* tail = NULL;
 
-// ==========================================
-// BARE-METAL UART DRIVER (16 MHz Clock)
-// ==========================================
+// UART DRIVER (16 MHz Clock)
 #define F_CPU 16000000UL
 #define BAUD 9600
 #define UBRR_VAL ((F_CPU/16/BAUD)-1)
@@ -32,13 +30,11 @@ void printString(const char* str) {
     }
 }
 
-// berubah!
 // Pengganti Serial.available()
 void dataAvailableUART(uint8_t* available) {
     *available = (UCSR0A & (1 << RXC0));
 }
 
-// berubah!
 // Pengganti Serial.read()
 void receiveUART(char* receivedData) {
     while (!(UCSR0A & (1 << RXC0)));
@@ -52,9 +48,7 @@ void printInt(int num) {
     printString(buf);
 }
 
-// ==========================================
 // BIT-LEVEL COMPRESSION & DECOMPRESSION
-// ==========================================
 void encodeChar6Bit(char inChar, uint8_t* outByte) {
     if (inChar >= 'A' && inChar <= 'Z') *outByte = inChar - 'A';
     else if (inChar >= 'a' && inChar <= 'z') *outByte = (inChar - 'a') + 26;
@@ -133,9 +127,7 @@ void unpackItemPIC(ItemData* item, char* outBuffer) {
     outBuffer[3] = '\0';
 }
 
-// ==========================================
 // LINKED LIST & MEMORY MANAGEMENT
-// ==========================================
 void initDatabase(void) {
     head = NULL;
     tail = NULL;
@@ -271,9 +263,7 @@ void updateItem(uint8_t targetId, uint8_t qTer, uint8_t qDip, uint8_t qRus) {
     printString("ERR: NOT_FOUND\n");
 }
 
-// ==========================================
 // SERIAL I/O & PARSING
-// ==========================================
 void printInventory(void) {
     Node* current = head;
     if (current == NULL) {
@@ -320,7 +310,6 @@ void parseAndAddCommand(char* commandString) {
     insertItem(newItem);
 }
 
-// berubah!
 // Pengganti readBytesUntil manual
 void processSerialInput(void) {
     static char buffer[64];

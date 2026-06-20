@@ -6,7 +6,7 @@
 #define MAX_ITEMS 85
 #define ITEM_SIZE 12
 
-// --- 96-BIT (12-BYTE) STRUCTURE ---
+// 96-BIT (12-BYTE) STRUCTURE
 struct __attribute__((packed)) ItemData {
     uint8_t id : 7;
 
@@ -31,18 +31,18 @@ struct __attribute__((packed)) ItemData {
 
 typedef struct ItemData ItemData;
 
-// --- LINKED LIST NODE ---
+// LINKED LIST NODE
 struct Node {
     ItemData data;
     struct Node* next;
 };
 typedef struct Node Node;
 
-// --- GLOBAL VARIABLES ---
+// GLOBAL VARIABLES
 extern Node* head;
 extern Node* tail;
 
-// --- FUNCTION PROTOTYPES ---
+// FUNCTION PROTOTYPES
 void initUART(void);
 void printString(const char* str);
 void initDatabase(void);

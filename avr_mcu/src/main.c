@@ -2,13 +2,13 @@
 #include "database.h"
 
 int main(void) {
-    // Setara dengan Serial.begin(9600)
+    // Setupa dengan Serial.begin(9600)
     initUART();
     
-    // Setara dengan fungsi setup()
+    // Serupa dengan fungsi setup()
     initDatabase();
 
-    // Setara dengan fungsi loop()
+    // Serupa dengan fungsi loop()
     while (1) {
         processSerialInput();
     }

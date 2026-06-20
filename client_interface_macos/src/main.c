@@ -22,20 +22,20 @@ int main(int argc, char *argv[]) {
         while ((c = getchar()) != '\n' && c != EOF) {}
     }
 
-    // 1. Inisialisasi koneksi Serial dengan Pass-by-Reference
+    // Inisialisasi koneksi Serial dengan Pass-by-Reference
     initSerialPort(portName, &connectionStatus);
 
-    // 2. Cek apakah Arduino berhasil terhubung
+    // Cek apakah Arduino berhasil terhubung
     if (connectionStatus == 0) {
         printf("\n[FATAL] Program dihentikan karena perangkat keras tidak terdeteksi.\n");
         printf("Pastikan Arduino terhubung dan port yang dimasukkan benar.\n\n");
         return 1; // Keluar dari program
     }
 
-    // 3. Jalankan putaran utama logika aplikasi jika koneksi sukses
+    // Jalankan logika aplikasi jika koneksi sukses
     runApp();
 
-    // 4. Putus koneksi secara aman
+    // Putus koneksi secara aman
     closeSerialPort();
 
     return 0;
