@@ -375,17 +375,33 @@ void updateStockAndStatus()
     }
 
     promptInt(
-        "Qty Tersedia Baru: ",
+        "Qty Tersedia (0-63): ",
         &qTer
     );
+    if(qTer < 0 || qTer > 63)
+    {
+        printf("ERROR: Qty harus 0-63\n");
+        return;
+    }
     promptInt(
-        "Qty Dipinjam Baru: ",
+        "Qty Dipinjam (0-63): ",
         &qDip
     );
+    if(qDip < 0 || qDip > 63)
+    {
+        printf("ERROR: Qty harus 0-63\n");
+        return;
+    }
     promptInt(
-        "Qty Rusak Baru: ",
+        "Qty Rusak (0-63): ",
         &qRus
     );
+    if(qRus < 0 || qRus > 63)
+    {
+        printf("ERROR: Qty harus 0-63\n");
+        return;
+    }
+    
     snprintf(
         command,
         sizeof(command),
